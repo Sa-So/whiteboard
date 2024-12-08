@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 
 // Canvas settings
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - 50; // Leave space for the toolbar
+canvas.height = window.innerHeight; // Leave space for the toolbar
 
 // Drawing variables
 let isDrawing = false;
@@ -116,11 +116,16 @@ document.getElementById("lineWidth").addEventListener("input", (event) => {
   lineWidth = event.target.value;
 });
 
+// Handle background color change
+document.getElementById("bgColorPicker").addEventListener("input", (event) => {
+  const bgColor = event.target.value;
+  canvas.style.backgroundColor = bgColor; // Set the background color of the canvas
+});
+
 // Clear button functionality
 document.getElementById("clearButton").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   history = []; // Clear the drawing history as well
-  saveCanvas(); // Save the cleared canvas
 });
 
 // Undo function triggered by Ctrl+Z
@@ -152,16 +157,24 @@ function saveCanvas() {
   if (currentCanvasId === null) {
     currentCanvasId = `canvas-${Date.now()}`; // Generate a unique ID for the canvas
   }
-  localStorage.setItem(currentCanvasId, JSON.stringify(history)); // Store history in localStorage
+
+  const canvasData = {
+    history: history,
+    bgColor: canvas.style.backgroundColor || "#ffffff", // Save the background color
+  };
+
+  localStorage.setItem(currentCanvasId, JSON.stringify(canvasData)); // Store history and background color in localStorage
   updateCanvasList(); // Update the canvas list
 }
 
 // Load the selected canvas from localStorage
 function loadCanvas(canvasId) {
-  const storedHistory = localStorage.getItem(canvasId);
-  if (storedHistory) {
-    history = JSON.parse(storedHistory);
+  const storedData = localStorage.getItem(canvasId);
+  if (storedData) {
+    const { history: storedHistory, bgColor } = JSON.parse(storedData);
+    history = storedHistory;
     currentCanvasId = canvasId;
+    canvas.style.backgroundColor = bgColor || "#ffffff"; // Set the background color from saved data
     redrawCanvas(); // Redraw the loaded canvas
   }
 }
@@ -187,3 +200,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Event listener to save the canvas when the user selects a "Save" button or menu item
 document.getElementById("saveButton").addEventListener("click", saveCanvas);
+
+document.getElementById("viewCanvases").addEventListener("click", () => {
+  if (document.getElementById("canvasList").style.display === "none") {
+    document.getElementById("canvasList").style.display = "block";
+  } else {
+    document.getElementById("canvasList").style.display = "none";
+  }
+});
