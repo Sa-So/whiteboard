@@ -209,6 +209,9 @@ document.getElementById("lineWidth").addEventListener("input", (event) => {
 // Handle background color change
 document.getElementById("bgColorPicker").addEventListener("input", (event) => {
   const bgColor = event.target.value;
+  document.querySelector("meta[name='theme-color']").content = bgColor;
+  document.querySelector("body").style.backgroundColor = bgColor;
+
   canvas.style.backgroundColor = bgColor;
 });
 
