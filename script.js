@@ -15,11 +15,17 @@ let drawingWithoutMouseDown = false; // New flag to track "drawing without mouse
 let history = []; // History stack to store drawing actions
 let currentCanvasId = null; // Keep track of the current canvas' ID
 
-// Event listeners
+// Event listeners for mouse events
 canvas.addEventListener("mousedown", startDrawing);
 canvas.addEventListener("mousemove", draw);
 canvas.addEventListener("mouseup", stopDrawing);
 canvas.addEventListener("mouseout", stopDrawing);
+
+// Event listeners for touch events
+canvas.addEventListener("touchstart", startDrawingTouch);
+canvas.addEventListener("touchmove", drawTouch);
+canvas.addEventListener("touchend", stopDrawingTouch);
+canvas.addEventListener("touchcancel", stopDrawingTouch);
 
 // Keydown listener for the "1" key
 document.addEventListener("keydown", (event) => {
@@ -38,7 +44,7 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Drawing function for normal mode
+// Function to handle drawing with mouse
 function startDrawing(event) {
   if (drawingWithoutMouseDown) return; // Don't start drawing if in "without mousedown" mode
   isDrawing = true;
@@ -49,7 +55,6 @@ function startDrawing(event) {
 function draw(event) {
   if (drawingWithoutMouseDown) {
     if (isDrawing || event.type === "mousemove") {
-      // Save stroke as small chunks
       const startX = lastX;
       const startY = lastY;
       const endX = event.offsetX;
@@ -64,7 +69,6 @@ function draw(event) {
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // Save the stroke in history
       history.push({
         startX,
         startY,
@@ -93,7 +97,6 @@ function draw(event) {
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // Save the stroke in history
       history.push({
         startX,
         startY,
@@ -115,6 +118,84 @@ function stopDrawing() {
   }
 }
 
+// Function to handle drawing with touch
+function startDrawingTouch(event) {
+  event.preventDefault(); // Prevent default scrolling behavior
+  if (drawingWithoutMouseDown) return;
+
+  isDrawing = true;
+  const touch = event.touches[0];
+  lastX = touch.clientX;
+  lastY = touch.clientY;
+}
+
+function drawTouch(event) {
+  event.preventDefault(); // Prevent default scrolling behavior
+  if (drawingWithoutMouseDown) {
+    if (isDrawing || event.type === "touchmove") {
+      const touch = event.touches[0];
+      const startX = lastX;
+      const startY = lastY;
+      const endX = touch.clientX;
+      const endY = touch.clientY;
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      history.push({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
+
+      lastX = endX;
+      lastY = endY;
+    }
+  } else {
+    if (isDrawing) {
+      const touch = event.touches[0];
+      const startX = lastX;
+      const startY = lastY;
+      const endX = touch.clientX;
+      const endY = touch.clientY;
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      history.push({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
+
+      lastX = endX;
+      lastY = endY;
+    }
+  }
+}
+
+function stopDrawingTouch(event) {
+  isDrawing = false;
+}
+
 // Handle color change
 document.getElementById("colorPicker").addEventListener("input", (event) => {
   color = event.target.value;
@@ -128,29 +209,27 @@ document.getElementById("lineWidth").addEventListener("input", (event) => {
 // Handle background color change
 document.getElementById("bgColorPicker").addEventListener("input", (event) => {
   const bgColor = event.target.value;
-  canvas.style.backgroundColor = bgColor; // Set the background color of the canvas
+  canvas.style.backgroundColor = bgColor;
 });
 
 // Clear button functionality
 document.getElementById("clearButton").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  history = []; // Clear the drawing history as well
+  history = [];
 });
 
 // Undo function triggered by Ctrl+Z
 function undoDrawing() {
   if (history.length > 0) {
-    const lastAction = history.pop(); // Remove the last action
-    // Redraw the entire canvas (without the last action)
+    const lastAction = history.pop();
     redrawCanvas();
   }
 }
 
 // Redraw the entire canvas based on history
 function redrawCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Loop through all the remaining actions and redraw them
   for (let i = 0; i < history.length; i++) {
     const { startX, startY, endX, endY, color, lineWidth } = history[i];
     ctx.beginPath();
@@ -167,16 +246,18 @@ function redrawCanvas() {
 // Save the current canvas history to localStorage
 function saveCanvas() {
   if (currentCanvasId === null) {
-    currentCanvasId = `canvas-${Date.now()}`; // Generate a unique ID for the canvas
+    currentCanvasId = `canvas-${Date.now()}`;
   }
 
   const canvasData = {
     history: history,
-    bgColor: canvas.style.backgroundColor || "#ffffff", // Save the background color
+    bgColor: canvas.style.backgroundColor || "#ffffff",
   };
 
-  localStorage.setItem(currentCanvasId, JSON.stringify(canvasData)); // Store history and background color in localStorage
-  updateCanvasList(); // Update the canvas list
+  localStorage.setItem(currentCanvasId, JSON.stringify(canvasData));
+  updateCanvasList();
+  const canvasList = document.getElementById("canvasList");
+  canvasList.style.display = "block";
 }
 
 // Load the selected canvas from localStorage
@@ -186,15 +267,15 @@ function loadCanvas(canvasId) {
     const { history: storedHistory, bgColor } = JSON.parse(storedData);
     history = storedHistory;
     currentCanvasId = canvasId;
-    canvas.style.backgroundColor = bgColor || "#ffffff"; // Set the background color from saved data
-    redrawCanvas(); // Redraw the loaded canvas
+    canvas.style.backgroundColor = bgColor || "#ffffff";
+    redrawCanvas();
   }
 }
 
 // Create a list of saved canvases
 function updateCanvasList() {
   const canvasList = document.getElementById("canvasList");
-  canvasList.innerHTML = ""; // Clear the list
+  canvasList.innerHTML = "";
   const canvasArr = [];
   for (const key in localStorage) {
     if (key.startsWith("canvas-")) {
@@ -220,9 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("saveButton").addEventListener("click", saveCanvas);
 
 document.getElementById("viewCanvases").addEventListener("click", () => {
-  if (document.getElementById("canvasList").style.display === "none") {
-    document.getElementById("canvasList").style.display = "block";
-  } else {
-    document.getElementById("canvasList").style.display = "none";
-  }
+  const canvasList = document.getElementById("canvasList");
+  canvasList.style.display =
+    canvasList.style.display === "none" ? "block" : "none";
 });

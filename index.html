@@ -25,18 +25,19 @@
     </style>
   </head>
   <body style="margin: 0">
-    <div>
+    <div style="position: absolute">
       <button id="viewCanvases">Saved Boards</button>
-      <label for="bgColorPicker">Background Color: </label>
+      <label for="bgColorPicker">Background </label>
       <input type="color" id="bgColorPicker" value="#ffffff" />
-      <label for="colorPicker">Pen Color: </label>
-
+      <label for="colorPicker">Pen</label>
       <input type="color" id="colorPicker" />
+
       <input type="range" id="lineWidth" min="1" max="20" value="5" />
       <button id="clearButton">Clear</button>
       <button id="saveButton">Save</button>
+      <button onclick="window.location.reload()">New</button>
     </div>
-    <ul id="canvasList"></ul>
+    <ul style="display: none" id="canvasList"></ul>
     <canvas id="whiteboard"></canvas>
     <script src="script.js"></script>
   </body>
