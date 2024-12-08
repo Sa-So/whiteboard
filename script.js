@@ -286,11 +286,21 @@ function updateCanvasList() {
     }
   }
   canvasArr.sort();
-
+  let i = 0;
   for (const key of canvasArr) {
     const listItem = document.createElement("li");
-    listItem.textContent = key;
-    listItem.addEventListener("click", () => loadCanvas(key));
+    const el = document.createElement("span");
+    const butt = document.createElement("button");
+    i += 1;
+    el.textContent = `Canvas ${i} `;
+    el.addEventListener("click", () => loadCanvas(key));
+    butt.textContent = "del";
+    butt.addEventListener("click", () => {
+      localStorage.removeItem(key);
+      updateCanvasList();
+    });
+    listItem.appendChild(el);
+    listItem.appendChild(butt);
     canvasList.appendChild(listItem);
   }
 }
