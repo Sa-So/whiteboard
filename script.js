@@ -256,8 +256,6 @@ function saveCanvas() {
 
   localStorage.setItem(currentCanvasId, JSON.stringify(canvasData));
   updateCanvasList();
-  const canvasList = document.getElementById("canvasList");
-  canvasList.style.display = "block";
 }
 
 // Load the selected canvas from localStorage
