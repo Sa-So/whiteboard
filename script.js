@@ -221,7 +221,9 @@ document.getElementById("clearButton").addEventListener("click", () => {
 // Undo function triggered by Ctrl+Z
 function undoDrawing() {
   if (history.length > 0) {
-    const lastAction = history.pop();
+    for (let i = 0; i < 7; i++) {
+      history.pop();
+    }
     redrawCanvas();
   }
 }
