@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 
 // Canvas settings
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight; // Leave space for the toolbar
+canvas.height = window.innerHeight;
 
 // Drawing variables
 let isDrawing = false;
@@ -48,54 +48,63 @@ function startDrawing(event) {
 
 function draw(event) {
   if (drawingWithoutMouseDown) {
-    // Drawing without mouse down
     if (isDrawing || event.type === "mousemove") {
+      // Save stroke as small chunks
+      const startX = lastX;
+      const startY = lastY;
+      const endX = event.offsetX;
+      const endY = event.offsetY;
+
       ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(event.offsetX, event.offsetY);
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // Save the drawing to history
+      // Save the stroke in history
       history.push({
-        startX: lastX,
-        startY: lastY,
-        endX: event.offsetX,
-        endY: event.offsetY,
-        color: color,
-        lineWidth: lineWidth,
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
       });
 
-      lastX = event.offsetX;
-      lastY = event.offsetY;
+      lastX = endX;
+      lastY = endY;
     }
   } else {
-    // Normal drawing mode
     if (isDrawing) {
+      const startX = lastX;
+      const startY = lastY;
+      const endX = event.offsetX;
+      const endY = event.offsetY;
+
       ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(event.offsetX, event.offsetY);
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
       ctx.stroke();
 
-      // Save the drawing to history
+      // Save the stroke in history
       history.push({
-        startX: lastX,
-        startY: lastY,
-        endX: event.offsetX,
-        endY: event.offsetY,
-        color: color,
-        lineWidth: lineWidth,
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
       });
 
-      lastX = event.offsetX;
-      lastY = event.offsetY;
+      lastX = endX;
+      lastY = endY;
     }
   }
 }
@@ -131,14 +140,17 @@ document.getElementById("clearButton").addEventListener("click", () => {
 // Undo function triggered by Ctrl+Z
 function undoDrawing() {
   if (history.length > 0) {
-    history.pop(); // Remove the last drawing action from history
-    redrawCanvas(); // Redraw the canvas without the last action
+    const lastAction = history.pop(); // Remove the last action
+    // Redraw the entire canvas (without the last action)
+    redrawCanvas();
   }
 }
 
 // Redraw the entire canvas based on history
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+  // Loop through all the remaining actions and redraw them
   for (let i = 0; i < history.length; i++) {
     const { startX, startY, endX, endY, color, lineWidth } = history[i];
     ctx.beginPath();
@@ -183,13 +195,19 @@ function loadCanvas(canvasId) {
 function updateCanvasList() {
   const canvasList = document.getElementById("canvasList");
   canvasList.innerHTML = ""; // Clear the list
+  const canvasArr = [];
   for (const key in localStorage) {
     if (key.startsWith("canvas-")) {
-      const listItem = document.createElement("li");
-      listItem.textContent = key;
-      listItem.addEventListener("click", () => loadCanvas(key));
-      canvasList.appendChild(listItem);
+      canvasArr.push(key);
     }
+  }
+  canvasArr.sort();
+
+  for (const key of canvasArr) {
+    const listItem = document.createElement("li");
+    listItem.textContent = key;
+    listItem.addEventListener("click", () => loadCanvas(key));
+    canvasList.appendChild(listItem);
   }
 }
 
