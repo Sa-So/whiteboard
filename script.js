@@ -1,5 +1,3 @@
-// script.js
-
 const canvas = document.getElementById("whiteboard");
 const ctx = canvas.getContext("2d");
 
@@ -15,6 +13,7 @@ let color = "#000000"; // Default color
 let lineWidth = 5; // Default line width
 let drawingWithoutMouseDown = false; // New flag to track "drawing without mousedown"
 let history = []; // History stack to store drawing actions
+let currentCanvasId = null; // Keep track of the current canvas' ID
 
 // Event listeners
 canvas.addEventListener("mousedown", startDrawing);
@@ -121,6 +120,7 @@ document.getElementById("lineWidth").addEventListener("input", (event) => {
 document.getElementById("clearButton").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   history = []; // Clear the drawing history as well
+  saveCanvas(); // Save the cleared canvas
 });
 
 // Undo function triggered by Ctrl+Z
@@ -146,3 +146,44 @@ function redrawCanvas() {
     ctx.stroke();
   }
 }
+
+// Save the current canvas history to localStorage
+function saveCanvas() {
+  if (currentCanvasId === null) {
+    currentCanvasId = `canvas-${Date.now()}`; // Generate a unique ID for the canvas
+  }
+  localStorage.setItem(currentCanvasId, JSON.stringify(history)); // Store history in localStorage
+  updateCanvasList(); // Update the canvas list
+}
+
+// Load the selected canvas from localStorage
+function loadCanvas(canvasId) {
+  const storedHistory = localStorage.getItem(canvasId);
+  if (storedHistory) {
+    history = JSON.parse(storedHistory);
+    currentCanvasId = canvasId;
+    redrawCanvas(); // Redraw the loaded canvas
+  }
+}
+
+// Create a list of saved canvases
+function updateCanvasList() {
+  const canvasList = document.getElementById("canvasList");
+  canvasList.innerHTML = ""; // Clear the list
+  for (const key in localStorage) {
+    if (key.startsWith("canvas-")) {
+      const listItem = document.createElement("li");
+      listItem.textContent = key;
+      listItem.addEventListener("click", () => loadCanvas(key));
+      canvasList.appendChild(listItem);
+    }
+  }
+}
+
+// Initialize the canvas list when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+  updateCanvasList();
+});
+
+// Event listener to save the canvas when the user selects a "Save" button or menu item
+document.getElementById("saveButton").addEventListener("click", saveCanvas);
