@@ -14,6 +14,7 @@ let lastY = 0;
 let color = "#000000"; // Default color
 let lineWidth = 5; // Default line width
 let drawingWithoutMouseDown = false; // New flag to track "drawing without mousedown"
+let history = []; // History stack to store drawing actions
 
 // Event listeners
 canvas.addEventListener("mousedown", startDrawing);
@@ -26,16 +27,15 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "`") {
     drawingWithoutMouseDown = !drawingWithoutMouseDown; // Toggle the mode
     if (drawingWithoutMouseDown) {
-      // Reset the drawing position to the current mouse position when entering "drawing without mousedown" mode
       lastX = event.clientX;
       lastY = event.clientY;
     }
+  }
 
-    console.log(
-      drawingWithoutMouseDown
-        ? "Drawing without mousedown!"
-        : "Normal drawing mode"
-    );
+  // Listen for Ctrl + Z for undo
+  if ((event.ctrlKey || event.metaKey) && event.key === "z") {
+    event.preventDefault(); // Prevent default behavior (Undo in browser)
+    undoDrawing(); // Call the undo function
   }
 });
 
@@ -49,7 +49,7 @@ function startDrawing(event) {
 
 function draw(event) {
   if (drawingWithoutMouseDown) {
-    // If we are in "drawing without mousedown" mode, use mouse movement to draw
+    // Drawing without mouse down
     if (isDrawing || event.type === "mousemove") {
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
@@ -60,11 +60,21 @@ function draw(event) {
       ctx.lineCap = "round";
       ctx.stroke();
 
+      // Save the drawing to history
+      history.push({
+        startX: lastX,
+        startY: lastY,
+        endX: event.offsetX,
+        endY: event.offsetY,
+        color: color,
+        lineWidth: lineWidth,
+      });
+
       lastX = event.offsetX;
       lastY = event.offsetY;
     }
   } else {
-    // Normal mode (mousedown required)
+    // Normal drawing mode
     if (isDrawing) {
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
@@ -74,6 +84,16 @@ function draw(event) {
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
       ctx.stroke();
+
+      // Save the drawing to history
+      history.push({
+        startX: lastX,
+        startY: lastY,
+        endX: event.offsetX,
+        endY: event.offsetY,
+        color: color,
+        lineWidth: lineWidth,
+      });
 
       lastX = event.offsetX;
       lastY = event.offsetY;
@@ -100,4 +120,29 @@ document.getElementById("lineWidth").addEventListener("input", (event) => {
 // Clear button functionality
 document.getElementById("clearButton").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  history = []; // Clear the drawing history as well
 });
+
+// Undo function triggered by Ctrl+Z
+function undoDrawing() {
+  if (history.length > 0) {
+    history.pop(); // Remove the last drawing action from history
+    redrawCanvas(); // Redraw the canvas without the last action
+  }
+}
+
+// Redraw the entire canvas based on history
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  for (let i = 0; i < history.length; i++) {
+    const { startX, startY, endX, endY, color, lineWidth } = history[i];
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.stroke();
+  }
+}
