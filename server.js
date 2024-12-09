@@ -1,12 +1,24 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
+// const express = require("express");
+// const http = require("http");
+const io = require("socket.io")(3000, {
+  cors: {
+    origin: ["http://localhost:5500", "https://sa-so.github.io/whiteboard"],
+  },
+});
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+// const app = express();
+// const server = http.createServer(app);
+// const io = socketIo(server);
 
-app.use(express.static("public"));
+// app.use(express.static("public"));
+
+// app.use(function (req, res, next) {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//   res.setHeader("Access-Control-Allow-Credentials", true);
+//   next();
+// });
 
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -21,6 +33,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000");
-});
+// server.listen(3000, () => {
+//   console.log("Server is running on http://localhost:3000");
+// });

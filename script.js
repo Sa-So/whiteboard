@@ -1,5 +1,6 @@
 const canvas = document.getElementById("whiteboard");
 const ctx = canvas.getContext("2d");
+const socket = io("https://whiteboard-n990.onrender.com");
 
 // Canvas settings
 canvas.width = window.innerWidth;
@@ -60,14 +61,14 @@ function draw(event) {
       const endX = event.offsetX;
       const endY = event.offsetY;
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
+      drawFromData({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
 
       history.push({
         startX,
@@ -88,14 +89,14 @@ function draw(event) {
       const endX = event.offsetX;
       const endY = event.offsetY;
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
+      drawFromData({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
 
       history.push({
         startX,
@@ -139,14 +140,14 @@ function drawTouch(event) {
       const endX = touch.clientX;
       const endY = touch.clientY;
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
+      drawFromData({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
 
       history.push({
         startX,
@@ -168,14 +169,14 @@ function drawTouch(event) {
       const endX = touch.clientX;
       const endY = touch.clientY;
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
+      drawFromData({
+        startX,
+        startY,
+        endX,
+        endY,
+        color,
+        lineWidth,
+      });
 
       history.push({
         startX,
@@ -317,4 +318,21 @@ document.getElementById("viewCanvases").addEventListener("click", () => {
   const canvasList = document.getElementById("canvasList");
   canvasList.style.display =
     canvasList.style.display === "none" ? "block" : "none";
+});
+
+function drawFromData(data) {
+  socket.emit("draw", data);
+  ctx.beginPath();
+  ctx.moveTo(data.startX, data.startY);
+  ctx.lineTo(data.endX, data.endY);
+  ctx.strokeStyle = data.color;
+  ctx.lineWidth = data.lineWidth;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.stroke();
+}
+
+// Listen for other users' drawing data
+socket.on("draw", (data) => {
+  drawFromData(data);
 });
