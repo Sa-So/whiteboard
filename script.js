@@ -61,14 +61,17 @@ function draw(event) {
       const endX = event.offsetX;
       const endY = event.offsetY;
 
-      drawFromData({
-        startX,
-        startY,
-        endX,
-        endY,
-        color,
-        lineWidth,
-      });
+      drawFromData(
+        {
+          startX,
+          startY,
+          endX,
+          endY,
+          color,
+          lineWidth,
+        },
+        true
+      );
 
       history.push({
         startX,
@@ -89,14 +92,17 @@ function draw(event) {
       const endX = event.offsetX;
       const endY = event.offsetY;
 
-      drawFromData({
-        startX,
-        startY,
-        endX,
-        endY,
-        color,
-        lineWidth,
-      });
+      drawFromData(
+        {
+          startX,
+          startY,
+          endX,
+          endY,
+          color,
+          lineWidth,
+        },
+        true
+      );
 
       history.push({
         startX,
@@ -140,14 +146,17 @@ function drawTouch(event) {
       const endX = touch.clientX;
       const endY = touch.clientY;
 
-      drawFromData({
-        startX,
-        startY,
-        endX,
-        endY,
-        color,
-        lineWidth,
-      });
+      drawFromData(
+        {
+          startX,
+          startY,
+          endX,
+          endY,
+          color,
+          lineWidth,
+        },
+        true
+      );
 
       history.push({
         startX,
@@ -169,14 +178,17 @@ function drawTouch(event) {
       const endX = touch.clientX;
       const endY = touch.clientY;
 
-      drawFromData({
-        startX,
-        startY,
-        endX,
-        endY,
-        color,
-        lineWidth,
-      });
+      drawFromData(
+        {
+          startX,
+          startY,
+          endX,
+          endY,
+          color,
+          lineWidth,
+        },
+        true
+      );
 
       history.push({
         startX,
@@ -320,8 +332,10 @@ document.getElementById("viewCanvases").addEventListener("click", () => {
     canvasList.style.display === "none" ? "block" : "none";
 });
 
-function drawFromData(data) {
-  socket.emit("draw", data);
+function drawFromData(data, shouldEmit) {
+  if (shouldEmit) {
+    socket.emit("draw", data);
+  }
   ctx.beginPath();
   ctx.moveTo(data.startX, data.startY);
   ctx.lineTo(data.endX, data.endY);
@@ -334,5 +348,5 @@ function drawFromData(data) {
 
 // Listen for other users' drawing data
 socket.on("draw", (data) => {
-  drawFromData(data);
+  drawFromData(data, false);
 });
